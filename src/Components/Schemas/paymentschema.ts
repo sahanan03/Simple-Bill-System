@@ -7,7 +7,7 @@ export const paymentFields = [
     { label: 'Paid', value: 'Paid' },
     { label: 'Pending', value: 'Pending' },
   ]},
-  { name: 'paymentDate', label: 'Payment Date', type: 'date' },
+  { name: 'paymentDate', label: 'Payment Date', type: 'date' as const},
 ];
 
 export const paymentColumns = [
