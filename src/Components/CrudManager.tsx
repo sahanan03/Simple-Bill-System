@@ -1,6 +1,8 @@
 import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useState } from 'react';
 import { Button, Form, Table, Modal, Input, Select,DatePicker} from 'antd';
+import currencyConverter from '../hooks/useCurrencyConverter';
+import dayjs from 'dayjs';
 interface Field {
     name:string,
     label:string,
@@ -26,8 +28,19 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
             const [data,setData]=useState<T[]>([]); //ex-clients array of obj
             const [loading,setLoading]=useState(true);
             const [modalOpen,setModalOpen]=useState(false);
-            const [editingItem,setEditingItem]=useState<T|null>(null); //vreate one object
+            const [editingItem,setEditingItem]=useState<T|null>(null); //reate one object
             const [form] = Form.useForm(); //react-hook-form
+
+            const [currency, setCurrency] = useState('');
+            const [amount, setAmount] = useState(0);
+            let convertedAmount = null;
+            if (title === 'Bills' && currency && amount > 0) {
+                    try {
+                    convertedAmount = currencyConverter(amount, currency, 'USD');
+                    } catch (err) {
+                    console.warn(err);
+                    }
+            }
 
             const fetchData = async () => {
                     setLoading(true);
@@ -55,9 +68,27 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
             };
 
              const handleEdit = (item: T) => {
-                    form.setFieldsValue(item); // prefills data
-                    setEditingItem(item);
+                    console.log("editing item");
                     setModalOpen(true);
+                    setEditingItem(item);
+                    
+                    const patchedItem = { ...item };
+                    fields.forEach((field) => {
+                        const key = field.name as keyof T;
+
+                        if (field.type === 'date' && item[key]) {
+                        // Convert string to dayjs for AntD DatePicker
+                        patchedItem[key] = dayjs(item[key] as string) as any;
+                        }
+
+                        if (title === 'Bills') {
+                            if (field.name === 'amount') setAmount(Number(item[key]) || 0);
+                            if (field.name === 'currency') setCurrency(String(item[key]) || '');
+                        }
+                    });
+
+                    form.setFieldsValue(patchedItem);
+                  
                 };
   
                 const handleDelete = async (id: string) => {
@@ -97,12 +128,19 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
                             <Form form={form} layout="vertical">
                             {fields.map(field => (
                                 <Form.Item key={field.name} name={field.name} label={field.label} rules={[{ required: true }]}>
-                                {field.type === 'text' && <Input />}
-                                {field.type === 'select' && <Select options={field.options} />}
+                                {field.type === 'text' && <Input onChange={field.name==='amount'? (e) => setAmount(parseFloat(e.target.value || '0')) : undefined}/>}
+                                {field.type === 'select' && <Select options={field.options} onChange={field.name==='currency'? (e) => setCurrency(e) : undefined} />}
                                 {field.type === 'date' && <DatePicker />}
                                 </Form.Item>
                             ))}
-                            </Form>
+                            {title === 'Bills' && convertedAmount !== null && (
+                                    <Form.Item label="💱 Amount in USD">
+                                        <div style={{ fontWeight: 'bold', color: 'green' }}>
+                                            ${convertedAmount}
+                                        </div>
+                                    </Form.Item>
+                                )}
+                         </Form>
                      </Modal>
                 </div>
             )

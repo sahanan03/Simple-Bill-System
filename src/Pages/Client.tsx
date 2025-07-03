@@ -1,6 +1,6 @@
 
 import CrudManager from '../Components/CrudManager';
-import { clientFields, clientColumns } from '../Components/Schemas/ClientSchema';
+import { clientFields, clientColumns } from '../Schemas/ClientSchema';
 import { createLocalCrudAPI } from '../api/localCrudApi';
 
 

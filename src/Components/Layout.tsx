@@ -20,7 +20,7 @@ const Layout = ({children}:{children:React.ReactNode}) =>{
                 ]}/>
             </Header>
 
-            <Content style={{ padding: '24px'}}> 
+            <Content style={{ padding: '24px' , minHeight:'calc(100vh - 64px)' }}> 
                 {children}
             </Content>
         </AntLayout>

@@ -1,5 +1,5 @@
 import CrudManager from '../Components/CrudManager';
-import { paymentFields, paymentColumns } from '../Components/Schemas/paymentschema';
+import { paymentFields, paymentColumns } from '../Schemas/paymentschema';
 import { createLocalCrudAPI } from '../api/localCrudApi';
 
 

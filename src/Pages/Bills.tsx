@@ -1,5 +1,5 @@
 import CrudManager from '../Components/CrudManager';
-import { billFields, billColumns } from '../Components/Schemas/BillSchema';
+import { billFields, billColumns } from '../Schemas/BillSchema';
 import { createLocalCrudAPI } from '../api/localCrudApi';
 
 export interface Bill {
