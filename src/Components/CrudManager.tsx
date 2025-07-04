@@ -2,6 +2,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useState } from 'react';
 import { Button, Form, Table, Modal, Input, Select,DatePicker} from 'antd';
 import currencyConverter from '../hooks/useCurrencyConverter';
+import { useMemo } from 'react';
 import dayjs from 'dayjs';
 interface Field {
     name:string,
@@ -33,14 +34,17 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
 
             const [currency, setCurrency] = useState('');
             const [amount, setAmount] = useState(0);
-            let convertedAmount = null;
+
+           const convertedAmount = useMemo(() => {
             if (title === 'Bills' && currency && amount > 0) {
-                    try {
-                    convertedAmount = currencyConverter(amount, currency, 'USD');
-                    } catch (err) {
-                    console.warn(err);
-                    }
+                try {
+                    return currencyConverter(amount, currency, 'USD');
+                } catch (err) {
+                   console.warn(err);
+                }
             }
+            return null;
+            }, [title, currency, amount]);
 
             const fetchData = async () => {
                     setLoading(true);
@@ -64,7 +68,7 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
                 }
                 setModalOpen(false);
                 setEditingItem(null);
-                fetchData();
+                fetchData(); // to display model rows
             };
 
              const handleEdit = (item: T) => {
@@ -134,13 +138,23 @@ function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManag
                                 </Form.Item>
                             ))}
                             {title === 'Bills' && convertedAmount !== null && (
-                                    <Form.Item label="💱 Amount in USD">
-                                        <div style={{ fontWeight: 'bold', color: 'green' }}>
-                                            ${convertedAmount}
-                                        </div>
-                                    </Form.Item>
-                                )}
-                         </Form>
+                                    <div
+                                        style={{
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f',
+                                        padding: '12px',
+                                        marginTop: '16px',
+                                        borderRadius: '8px',
+                                        fontSize: '16px',
+                                        fontWeight: 500,
+                                        color: '#389e0d',
+                                        }}
+                                    >
+                                        💱 Converted Amount (USD): <strong>${convertedAmount}</strong>
+                                    </div>
+                            )}
+
+                             </Form>
                      </Modal>
                 </div>
             )

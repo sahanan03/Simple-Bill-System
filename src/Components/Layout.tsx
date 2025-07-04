@@ -1,30 +1,22 @@
-import { Layout as AntLayout, Menu } from 'antd';
-import { useLocation, Link} from 'react-router-dom';
+import { Layout as AntLayout } from 'antd';
+import { Outlet, useNavigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
-const {Header, Content} = AntLayout;
+const { Content } = AntLayout;
 
-const Layout = ({children}:{children:React.ReactNode}) =>{
-    const location  = useLocation();
+const Layout = () => {
+  return (
+    <AntLayout style={{ minHeight: '100vh' }}>
+      <Sidebar />
+      <AntLayout>
+        <Header />
+        <Content style={{ margin: '16px' }}>
+          <Outlet />
+        </Content>
+      </AntLayout>
+    </AntLayout>
+  );
+};
 
-    return(
-        <AntLayout>
-            <Header>
-                <Menu
-                 theme='dark'
-                 mode='horizontal'
-                 selectedKeys={[location.pathname]} // to highlight the current page
-                 items={[
-                    { key: '/clients', label: <Link to="/clients">Clients</Link> },
-                    { key: '/bills', label: <Link to="/bills">Bills</Link> },
-                    { key: '/payments', label: <Link to="/payments">Payments</Link> },
-                ]}/>
-            </Header>
-
-            <Content style={{ padding: '24px' , minHeight:'calc(100vh - 64px)' }}> 
-                {children}
-            </Content>
-        </AntLayout>
-    )
-
-}
 export default Layout;
