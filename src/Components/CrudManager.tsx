@@ -1,166 +1,136 @@
-import type { ColumnsType } from 'antd/es/table';
-import { useEffect, useState } from 'react';
-import { Button, Form, Table, Modal, Input, Select,DatePicker} from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, Modal, Table, Form } from 'antd';
+import type { CrudManagerProps } from './types';
+import CrudForm from './CrudForm'
+import ActionButtons from './ActionsButtons';
 import currencyConverter from '../hooks/useCurrencyConverter';
-import { useMemo } from 'react';
 import dayjs from 'dayjs';
-interface Field {
-    name:string,
-    label:string,
-    type:'text'|'select'|'date' //kind of input
-    options?:{label:string,value:string}[] //select
-}
 
-interface CrudManagerProps<T> {
-    title:string;
-    fields:Field[]; // form structure
-    columns:ColumnsType<T>;
-    api:{
-        getAll:()=>Promise<T[]>;
-        create:(item:T) => Promise<void>;
-        update:(id:string,item:T) => Promise<void>;
-        delete:(id:string) => Promise<void>;
-
-    };
-
-}
-
-function CrudManager<T extends {id:string}>({title,fields,columns,api}:CrudManagerProps<T>) {
-            const [data,setData]=useState<T[]>([]); //ex-clients array of obj
-            const [loading,setLoading]=useState(true);
-            const [modalOpen,setModalOpen]=useState(false);
-            const [editingItem,setEditingItem]=useState<T|null>(null); //reate one object
-            const [form] = Form.useForm(); //react-hook-form
-
-            const [currency, setCurrency] = useState('');
-            const [amount, setAmount] = useState(0);
-
-           const convertedAmount = useMemo(() => {
-            if (title === 'Bills' && currency && amount > 0) {
-                try {
-                    return currencyConverter(amount, currency, 'USD');
-                } catch (err) {
-                   console.warn(err);
-                }
-            }
-            return null;
-            }, [title, currency, amount]);
-
-            const fetchData = async () => {
-                    setLoading(true);
-                    const items= await api.getAll();
-                    setData(items);
-                    setLoading(false);   
-            }
-
-            useEffect (()=>{
-                fetchData();
-            },[]);
+function CrudManager<T extends { id: string }>({
+  title,
+  fields,
+  columns,
+  useGetQuery,
+  useAddMutation,
+  useUpdateMutation,
+  useDeleteMutation
+}: CrudManagerProps<T>) {
+  const { data = [], isLoading } = useGetQuery();
+  const [addItem] = useAddMutation();
+ const [updateItem] = useUpdateMutation();
+  const [deleteItem] = useDeleteMutation();
 
 
-            const handleSubmit =async()=>{
-                const values = await form.validateFields(); // waits for validation (promise)
-                console.log(values);
-                if(editingItem){
-                    await api.update(editingItem.id,values); 
-                } else {
-                    api.create(values);
-                }
-                setModalOpen(false);
-                setEditingItem(null);
-                fetchData(); // to display model rows
-            };
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<T | null>(null);
+  const [form] = Form.useForm();
 
-             const handleEdit = (item: T) => {
-                    console.log("editing item");
-                    setModalOpen(true);
-                    setEditingItem(item);
-                    
-                    const patchedItem = { ...item };
-                    fields.forEach((field) => {
-                        const key = field.name as keyof T;
+  const [currency, setCurrency] = useState('');
+  const [amount, setAmount] = useState(0);
 
-                        if (field.type === 'date' && item[key]) {
-                        // Convert string to dayjs for AntD DatePicker
-                        patchedItem[key] = dayjs(item[key] as string) as any;
-                        }
+  const convertedAmount = useMemo(() => {
+    if (title === 'Bills' && currency && amount > 0) {
+      try {
+        return currencyConverter(amount, currency, 'USD');
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+    return null;
+  }, [title, currency, amount]);
 
-                        if (title === 'Bills') {
-                            if (field.name === 'amount') setAmount(Number(item[key]) || 0);
-                            if (field.name === 'currency') setCurrency(String(item[key]) || '');
-                        }
-                    });
+ 
 
-                    form.setFieldsValue(patchedItem);
-                  
-                };
+  const handleSubmit = async () => {
+    const values = await form.validateFields();
+    if (editingItem) {
+      await updateItem({id:editingItem.id, ...values});
+    } else {
+      await addItem(values);
+    }
+    setModalOpen(false);
+    setEditingItem(null);
   
-                const handleDelete = async (id: string) => {
-                    await api.delete(id);
-                    fetchData();
-                };
+  };
 
-              return(
-                <div>
-                    <h2 className='text-xl font-semibold mb-4'>{title}</h2>
-                    <Button type='primary' onClick={()=>{form.resetFields(),setModalOpen(true)}}>Add {title}</Button>
-                    <Table
-                      rowKey={'id'}
-                      columns={[
-                        ...columns,
-                        {
-                            title:'Actions',
-                            render:(_, record:T) => (          // '-' : ignoring,   record : enire row
-                                <>
-                                        <Button size='small' onClick={() => handleEdit(record)}>Edit</Button>
-                                        <Button size='small' danger onClick={() => handleDelete(record.id)}>Delete</Button> 
-                                </>
-                            )                                   // adds this for each row
-                        }     
-                      ]}
-                      dataSource={data}
-                      loading={loading}
-                      className='mt-4'
-                    />
+  const handleEdit = (item: T) => {
+    setModalOpen(true);
+    setEditingItem(item);
+    
+    const patchedItem = { ...item };
+    fields.forEach((field) => {
+      const key = field.name as keyof T;
+      if (field.type === 'date' && item[key]) {
+        patchedItem[key] = dayjs(item[key] as string) as any;
+      }
+      if (title === 'Bills') {
+        if (field.name === 'amount') setAmount(Number(item[key]) || 0);
+        if (field.name === 'currency') setCurrency(String(item[key]) || '');
+      }
+    });
 
-                     <Modal                                       // for pop ups
-                            title={editingItem ? `Edit ${title}` : `Add ${title}`}
-                            open={modalOpen}
-                            onCancel={() => { setModalOpen(false); setEditingItem(null); }} //only currently editing item
-                            onOk={handleSubmit}
-                        >
-                            <Form form={form} layout="vertical">
-                            {fields.map(field => (
-                                <Form.Item key={field.name} name={field.name} label={field.label} rules={[{ required: true }]}>
-                                {field.type === 'text' && <Input onChange={field.name==='amount'? (e) => setAmount(parseFloat(e.target.value || '0')) : undefined}/>}
-                                {field.type === 'select' && <Select options={field.options} onChange={field.name==='currency'? (e) => setCurrency(e) : undefined} />}
-                                {field.type === 'date' && <DatePicker />}
-                                </Form.Item>
-                            ))}
-                            {title === 'Bills' && convertedAmount !== null && (
-                                    <div
-                                        style={{
-                                        backgroundColor: '#f6ffed',
-                                        border: '1px solid #b7eb8f',
-                                        padding: '12px',
-                                        marginTop: '16px',
-                                        borderRadius: '8px',
-                                        fontSize: '16px',
-                                        fontWeight: 500,
-                                        color: '#389e0d',
-                                        }}
-                                    >
-                                        💱 Converted Amount (USD): <strong>${convertedAmount}</strong>
-                                    </div>
-                            )}
+    form.setFieldsValue(patchedItem);
+  };
 
-                             </Form>
-                     </Modal>
-                </div>
+  const handleDelete = async (id: string) => {
+    await deleteItem(id);
+  };
+
+  return (
+        <div className="bg-white p-6 rounded-xl shadow-md mt-6 ml-4">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+            <Button
+            type="primary"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+            onClick={() => {
+                form.resetFields();
+                setModalOpen(true);
+            }}
+            >
+            + Add {title}
+            </Button>
+        </div>
+
+        <Table
+        rowKey="id"
+        columns={[
+            ...columns,
+            {
+            title: 'Actions',
+            render: (_, record: T) => (
+                <ActionButtons   onEdit={() => handleEdit(record)}
+                   onDelete={() => handleDelete(record.id)}/>
             )
+            }
+        ]}
+        dataSource={data}
+        loading={isLoading}
+        className="rounded-xl shadow-md border border-gray-200"
+        pagination={{ pageSize: 5 }}
+        />
 
-               
-
+      <Modal
+        title={<span className="text-xl font-semibold text-purple-700">{editingItem ? `Edit ${title}` : `Add ${title}`}</span>}
+        open={modalOpen}
+        onCancel={() => {
+          setModalOpen(false);
+          setEditingItem(null);
+        }}
+        onOk={handleSubmit}
+        okButtonProps={{ className: 'bg-purple-600 hover:bg-purple-700' }}
+      >
+        <CrudForm
+          form={form}
+          fields={fields}
+          title={title}
+          convertedAmount={convertedAmount}
+          setCurrency={setCurrency}
+          setAmount={setAmount}
+        />
+      </Modal>
+    </div>
+  );
 }
 
-export default CrudManager
+export default CrudManager;

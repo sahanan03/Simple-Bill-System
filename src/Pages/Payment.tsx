@@ -1,6 +1,7 @@
 import CrudManager from '../Components/CrudManager';
 import { paymentFields, paymentColumns } from '../Schemas/paymentschema';
-import { createLocalCrudAPI } from '../api/localCrudApi';
+
+import { useAddPaymentMutation, useDeletePaymentMutation, useGetPaymentsQuery, useUpdatePaymentMutation } from '../api/paymentApi';
 
 
 export interface Payment {
@@ -11,10 +12,10 @@ export interface Payment {
   status: string;
   paymentDate: string;
 }
-const paymentsAPI = createLocalCrudAPI<Payment>('payments');
+
 
 const Payments = () => (
-  <CrudManager title="Payments" fields={paymentFields} columns={paymentColumns} api={paymentsAPI} />
+  <CrudManager title="Payments" fields={paymentFields} columns={paymentColumns} useGetQuery={useGetPaymentsQuery}  useAddMutation = {useAddPaymentMutation} useUpdateMutation={useUpdatePaymentMutation} useDeleteMutation={useDeletePaymentMutation}/>
 );
 
 export default Payments;

@@ -12,12 +12,13 @@ const CurrencyConverter = () => {
   const fetchRates = async () => {
     const res = await fetch("https://open.er-api.com/v6/latest/USD");
     const data = await res.json();
+    console.log(data);
     setRates(data.rates);
   };
 
   useEffect(() => {
     fetchRates();
-  }, []);
+  }, []); 
 
   const handleConvert = () => {
     if (!rates[from] || !rates[to]) return;
@@ -27,7 +28,7 @@ const CurrencyConverter = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-700 flex items-center justify-center p-6">
+    <div className="bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-700 flex items-center justify-center p-6 rounded-xl">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
         <h2 className="text-2xl font-bold text-center text-indigo-700 mb-6">💱 Currency Converter</h2>
 

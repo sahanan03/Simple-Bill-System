@@ -26,7 +26,7 @@ const Login = () => {
                 <Input />
             </Form.Item>
             <Form.Item name="password" label="Password" rules={[{ required: true }]}>
-                <Input.Password />
+                <Input.Password /> 
             </Form.Item>
             <Button type="primary" htmlType="submit" block>
                 Login

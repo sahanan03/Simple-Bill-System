@@ -1,0 +1,35 @@
+{
+  "clients": [
+    {
+      "id": "b2a1",
+      "name": "Sahana N A",
+      "email": "nasahana41@gmail.com",
+      "currency": "INR"
+    },
+    {
+      "id": "a597",
+      "name": "Demo",
+      "email": "nasahana41@gmail.com",
+      "currency": "USD"
+    }
+  ],
+  "bills": [
+    {
+      "id": "f060",
+      "clientName": "as",
+      "amount": "30",
+      "currency": "INR",
+      "billDate": "2025-07-15T18:30:00.000Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "3e9a",
+      "clientName": "fr",
+      "billId": "789",
+      "amountPaid": "2000",
+      "status": "Paid",
+      "paymentDate": "2025-07-14T18:30:00.000Z"
+    }
+  ]
+}

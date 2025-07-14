@@ -1,20 +1,25 @@
 
 import CrudManager from '../Components/CrudManager';
 import { clientFields, clientColumns } from '../Schemas/ClientSchema';
-import { createLocalCrudAPI } from '../api/localCrudApi';
+import { useAddClientsMutation, useDeleteClientsMutation, useGetClientsQuery, useUpdateClientMutation } from '../api/clientApi';
 
 
-export interface Client {
+
+export interface Client{
   id: string;
   name: string;
   email: string;
   currency: string;
 }
-const clientsAPI = createLocalCrudAPI<Client>('clients');
 
 
-const Clients = () => (
-  <CrudManager title="Clients" fields={clientFields} columns={clientColumns} api={clientsAPI} />
-);
+
+
+const Clients = () => {
+
+  return (
+      <CrudManager title="Clients" fields={clientFields} columns={clientColumns} useGetQuery={useGetClientsQuery} useAddMutation={useAddClientsMutation}  useUpdateMutation={useUpdateClientMutation} useDeleteMutation={useDeleteClientsMutation}/>
+  )
+};
 
 export default Clients;

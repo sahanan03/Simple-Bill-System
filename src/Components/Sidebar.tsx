@@ -1,10 +1,6 @@
-import { Layout, Menu } from 'antd';
-import { useNavigate } from 'react-router-dom';
 
-const { Sider } = Layout;
 
 const Sidebar = () => {
-  const navigate = useNavigate();
 
   return (
     <div className="h-screen w-60 bg-[#1f1f47] text-white flex flex-col">

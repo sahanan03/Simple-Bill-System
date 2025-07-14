@@ -1,6 +1,7 @@
 import CrudManager from '../Components/CrudManager';
 import { billFields, billColumns } from '../Schemas/BillSchema';
-import { createLocalCrudAPI } from '../api/localCrudApi';
+import { useAddBillsMutation, useDeleteBillsMutation, useGetBillsQuery, useUpdateBillsMutation } from '../api/billApi';
+;
 
 export interface Bill {
   id: string;
@@ -10,10 +11,9 @@ export interface Bill {
   billDate: string;
 }
 
-const billsAPI = createLocalCrudAPI<Bill>('bills');
 
 const Bills = () => (
-  <CrudManager title="Bills" fields={billFields} columns={billColumns} api={billsAPI} />
+  <CrudManager title="Bills" fields={billFields} columns={billColumns} useGetQuery={useGetBillsQuery} useAddMutation ={useAddBillsMutation} useUpdateMutation={useUpdateBillsMutation} useDeleteMutation= {useDeleteBillsMutation} />
 );
 
 export default Bills;
